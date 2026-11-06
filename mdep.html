@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MDEP | Prasanna Kakade</title>
+<meta name="description" content="MDEP: a modular embedded platform with a 4-layer CH32V203 motherboard and three plug-in modules, designed in KiCad. Design complete; fabrication and validation pending.">
+<style>
+  :root {
+    --bg:#fafaf7; --fg:#1b1f23; --muted:#5b636b; --line:#dcdcd4; --accent:#1f3a5f; --card:#ffffff; --ph:#eef1f4;
+    --pow:#b45309; --spi:#1f5fa8; --cs:#2a7a4b;
+    --ok:#2a7a4b; --warn:#b45309; --none:#8a5a5a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#14181c; --fg:#e8eaed; --muted:#9aa3ab; --line:#2c333a; --accent:#8fb4e8; --card:#1b2026; --ph:#1f262d;
+      --pow:#f0b35a; --spi:#8fb4e8; --cs:#6fcf97;
+      --ok:#6fcf97; --warn:#f0b35a; --none:#e59a9a;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: 2rem; line-height:1.2; margin: 0 0 6px; color: var(--accent); }
+  h2 { font-size: 1.25rem; margin: 48px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); color: var(--accent); scroll-margin-top: 16px; }
+  h3 { font-size: 1.02rem; margin: 22px 0 6px; }
+  p { margin: 0 0 14px; }
+  a { color: var(--accent); }
+  .tagline { color: var(--muted); font-size: 1.05rem; margin-bottom: 14px; }
+  .role { font-size:.95rem; color:var(--muted); margin-bottom: 12px; }
+  .tags { display:flex; flex-wrap:wrap; gap:8px; margin: 12px 0 18px; }
+  .tags span { font-size:.8rem; padding:3px 10px; border-radius:6px; background:var(--ph); color:var(--muted); }
+  nav.toc { display:flex; flex-wrap:wrap; gap:6px 14px; font-size:.85rem; margin: 0 0 22px; padding: 10px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+  nav.toc a { text-decoration:none; color: var(--muted); }
+  nav.toc a:hover { color: var(--accent); text-decoration: underline; }
+
+  .status-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 6px 0 4px; }
+  @media (max-width: 700px) { .status-grid { grid-template-columns: 1fr; } }
+  .st { background:var(--card); border:1px solid var(--line); border-top-width:3px; border-radius:8px; padding: 12px 14px; font-size:.92rem; }
+  .st h3 { margin:0 0 6px; font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; }
+  .st p { margin:0; }
+  .st.designed { border-top-color: var(--ok); } .st.designed h3 { color: var(--ok); }
+  .st.planned  { border-top-color: var(--warn); } .st.planned h3 { color: var(--warn); }
+  .st.validated{ border-top-color: var(--none); } .st.validated h3 { color: var(--none); }
+
+  figure { margin: 22px 0; }
+  figcaption { font-size:.85rem; color: var(--muted); margin-top: 8px; }
+  .project-image { display:block; width:100%; border:1px solid var(--line); border-radius:10px; background:var(--ph); object-fit:contain; }
+  .project-image.wide { aspect-ratio:16/9; }
+  .project-image.sq { aspect-ratio:4/3; }
+  figure a { display:block; }
+  .ph { display:flex; align-items:center; justify-content:center; text-align:center; padding:16px; border:2px dashed var(--line); border-radius:10px; background:var(--ph); color:var(--muted); font-size:.9rem; }
+  .ph.wide { aspect-ratio:16/9; } .ph.sq { aspect-ratio:4/3; }
+  .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+
+  .diagram-wrap { overflow-x:auto; border:1px solid var(--line); border-radius:10px; background:var(--card); }
+  svg.diagram { width:100%; height:auto; display:block; }
+  .swipe { display:none; font-size:.8rem; color:var(--muted); margin: 6px 0 0; }
+  @media (max-width: 700px) { svg.diagram { min-width: 700px; } .swipe { display:block; } }
+  svg.diagram text { fill: var(--fg); font-family: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-size: 12px; }
+  svg.diagram .sub { fill: var(--muted); font-size: 10px; }
+  svg.diagram .box { fill: var(--ph); stroke: var(--line); stroke-width: 1.5; }
+  svg.diagram .mod { fill: var(--card); stroke: var(--accent); stroke-width: 1.5; }
+  svg.diagram .pf { fill: var(--card); stroke: var(--pow); stroke-width: 1.5; }
+  svg.diagram .w-pow { stroke: var(--pow); stroke-width: 2.5; fill:none; }
+  svg.diagram .w-spi { stroke: var(--spi); stroke-width: 2.5; fill:none; }
+  svg.diagram .w-cs  { stroke: var(--cs);  stroke-width: 2;   fill:none; stroke-dasharray: 6 3; }
+  svg.diagram .w-addr{ stroke: var(--muted); stroke-width: 1.5; fill:none; }
+  svg.diagram .brace { stroke: var(--muted); stroke-width: 1.5; fill:none; stroke-dasharray: 3 3; }
+
+  table { width:100%; border-collapse: collapse; font-size:.93rem; background: var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  th, td { text-align:left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  th { font-size:.78rem; text-transform: uppercase; letter-spacing:.04em; color: var(--muted); background: var(--ph); }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { font-weight: 600; width: 22%; }
+  @media (max-width: 640px) { table, thead, tbody, th, td, tr { display:block; } thead { display:none; }
+    td { border-bottom:none; padding: 4px 12px; } td:first-child { width:auto; padding-top:12px; } tr { border-bottom:1px solid var(--line); padding-bottom:8px; }
+    tr:last-child { border-bottom:none; } td[data-l]::before { content: attr(data-l) ": "; color: var(--muted); font-size:.8rem; } }
+
+  .review { background: var(--card); border:1px solid var(--line); border-radius:10px; padding: 14px 18px 6px; margin-bottom: 16px; }
+  .review h3 { margin: 0 0 8px; }
+  .review dl { margin:0; }
+  .review dt { font-size:.75rem; text-transform: uppercase; letter-spacing:.05em; color: var(--muted); margin-top: 8px; }
+  .review dd { margin: 2px 0 8px; }
+  code { background: var(--ph); padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+  ol, ul { padding-left: 22px; margin: 0 0 14px; }
+  li { margin-bottom: 6px; }
+  .note { font-size:.85rem; color: var(--muted); border-left: 3px solid var(--line); padding-left: 12px; }
+  .two { display:grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 640px) { .two { grid-template-columns: 1fr; } }
+  .two h3 { margin-top: 0; }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1>MDEP: Modular Distributed Embedded Platform</h1>
+  <p class="tagline">A CH32V203-based motherboard with eight expansion slots and three plug-in modules, designed in KiCad.</p>
+  <p class="role"><strong>Role:</strong> PCB design and project development (KiCad schematics and layouts).</p>
+  <div class="tags"><span>KiCad</span><span>4-layer PCB</span><span>CH32V203C8T6 (RISC-V)</span><span>ESP32-S3</span><span>SPI</span><span>Power input design</span></div>
+
+  <nav class="toc" aria-label="Page sections">
+    <a href="#status">Status</a><a href="#overview">Overview</a><a href="#architecture">Architecture</a><a href="#motherboard">Motherboard</a><a href="#modules">Modules</a><a href="#decisions">Decisions</a><a href="#review">Design review</a><a href="#next">Next steps</a><a href="#tools">Tools</a><a href="#contact">Contact</a>
+  </nav>
+
+  <figure>
+  <a href="images/motherboard-layout.png" target="_blank" rel="noopener"><img class="project-image wide" loading="lazy" src="images/motherboard-layout.png" alt="KiCad PCB layout of the MDEP motherboard"></a>
+  <figcaption>Motherboard PCB layout, a KiCad design screenshot (not fabricated hardware).</figcaption>
+</figure>
+</header>
+
+<h2 id="status">Project status</h2>
+<div class="status-grid">
+  <div class="st designed"><h3>Designed</h3><p>Schematics and PCB layouts for all four boards: the motherboard and the Sensor, Motor Driver and Audio modules.</p></div>
+  <div class="st planned"><h3>Planned</h3><p>Fabrication, hardware bring-up, and firmware, including the SPI <code>WHO_AM_I</code> module identification.</p></div>
+  <div class="st validated"><h3>Validated</h3><p>Nothing yet. No board has been fabricated or tested.</p></div>
+</div>
+
+<h2 id="overview">Overview</h2>
+<p>Most embedded boards are one fixed design: adding a motor driver or an audio chip means redesigning the board. MDEP splits the system into a motherboard and plug-in modules, so a sensor, motor or audio function can be added, removed or debugged on its own.</p>
+<p>The motherboard includes a hardware presence-detect arrangement for each slot, and each slot has its own polyfuse intended to help limit the effect of an overcurrent. These protections have not yet been verified on fabricated hardware; their real-world performance will be established during bring-up and testing.</p>
+
+<h2 id="architecture">System architecture</h2>
+<figure>
+  <div class="diagram-wrap" tabindex="0" aria-label="Block diagram, scrollable">
+  <svg class="diagram" viewBox="0 0 790 360" role="img" aria-labelledby="diagTitle diagDesc">
+    <title id="diagTitle">Simplified MDEP block diagram</title>
+    <desc id="diagDesc">A dual power input with diode-OR and a CH32V203 microcontroller feed eight expansion slots. Power passes through a polyfuse per slot. The microcontroller shares one SPI bus across all slots and selects a slot through a 74HC138 decoder. Three plug-in modules fit into the slots.</desc>
+
+    <!-- shared rails -->
+    <path class="w-pow" d="M170 40 H290 V292"/>
+    <path class="w-spi" d="M170 160 H330 V295"/>
+    <path class="w-spi" d="M330 160 V55"/>
+    <!-- chip-select: one separate line from the decoder to each slot -->
+    <path class="w-cs"  d="M170 296 H350 V68 H470"/>
+    <path class="w-cs"  d="M170 304 H370 V148 H470"/>
+    <path class="w-cs"  d="M170 312 H390 V300 H470"/>
+
+    <!-- slot rows -->
+    <g id="row1">
+      <path class="w-pow" d="M290 40 H400"/>
+      <path class="w-spi" d="M330 55 H470"/>
+      <rect class="pf" x="400" y="31" width="46" height="18" rx="3"/><text x="423" y="44" text-anchor="middle" style="font-size:10px">PF</text>
+      <path class="w-pow" d="M446 40 H470"/>
+      <rect class="box" x="470" y="22" width="150" height="56" rx="6"/>
+      <text x="545" y="46" text-anchor="middle" style="font-weight:600">Slot 1</text>
+      <text class="sub" x="545" y="62" text-anchor="middle">11-pin · presence-detect</text>
+    </g>
+    <g id="row2">
+      <path class="w-pow" d="M290 120 H400"/>
+      <path class="w-spi" d="M330 135 H470"/>
+      <rect class="pf" x="400" y="111" width="46" height="18" rx="3"/><text x="423" y="124" text-anchor="middle" style="font-size:10px">PF</text>
+      <path class="w-pow" d="M446 120 H470"/>
+      <rect class="box" x="470" y="102" width="150" height="56" rx="6"/>
+      <text x="545" y="126" text-anchor="middle" style="font-weight:600">Slot 2</text>
+      <text class="sub" x="545" y="142" text-anchor="middle">11-pin · presence-detect</text>
+    </g>
+    <text x="545" y="196" text-anchor="middle" style="font-size:18px">⋮</text>
+    <text class="sub" x="545" y="214" text-anchor="middle">slots 3 to 7, same design</text>
+    <g id="row8">
+      <path class="w-pow" d="M290 272 H400"/>
+      <path class="w-spi" d="M330 287 H470"/>
+      <rect class="pf" x="400" y="263" width="46" height="18" rx="3"/><text x="423" y="276" text-anchor="middle" style="font-size:10px">PF</text>
+      <path class="w-pow" d="M446 272 H470"/>
+      <rect class="box" x="470" y="254" width="150" height="56" rx="6"/>
+      <text x="545" y="278" text-anchor="middle" style="font-weight:600">Slot 8</text>
+      <text class="sub" x="545" y="294" text-anchor="middle">11-pin · presence-detect</text>
+    </g>
+
+    <!-- left column -->
+    <rect class="box" x="20" y="10" width="150" height="60" rx="6"/>
+    <text x="95" y="36" text-anchor="middle" style="font-weight:600">Dual power input</text>
+    <text class="sub" x="95" y="52" text-anchor="middle">diode-OR</text>
+
+    <rect class="box" x="20" y="130" width="150" height="60" rx="6"/>
+    <text x="95" y="156" text-anchor="middle" style="font-weight:600">CH32V203C8T6</text>
+    <text class="sub" x="95" y="172" text-anchor="middle">RISC-V MCU</text>
+
+    <path class="w-addr" d="M95 190 V250"/>
+    <text class="sub" x="104" y="224">3 address lines</text>
+
+    <rect class="box" x="20" y="250" width="150" height="70" rx="6"/>
+    <text x="95" y="272" text-anchor="middle" style="font-weight:600">74HC138</text>
+    <text class="sub" x="95" y="288" text-anchor="middle">1-of-8 decoder, one</text>
+    <text class="sub" x="95" y="300" text-anchor="middle">output per slot</text>
+
+    <!-- modules -->
+    <path class="brace" d="M630 22 H642 V310 H630"/>
+    <text class="sub" x="716" y="82" text-anchor="middle">Plug-in modules</text>
+    <text class="sub" x="716" y="96" text-anchor="middle">(fit any slot)</text>
+    <rect class="mod" x="660" y="110" width="112" height="44" rx="6"/>
+    <text x="716" y="137" text-anchor="middle">Sensor Hub</text>
+    <rect class="mod" x="660" y="166" width="112" height="44" rx="6"/>
+    <text x="716" y="193" text-anchor="middle">Motor Driver Hub</text>
+    <rect class="mod" x="660" y="222" width="112" height="44" rx="6"/>
+    <text x="716" y="241" text-anchor="middle">Audio Hub</text>
+    <text class="sub" x="716" y="256" text-anchor="middle">ESP32-S3</text>
+
+    <!-- legend -->
+    <path class="w-pow" d="M20 340 H50"/><text x="58" y="344" style="font-size:11px">Power (polyfuse "PF" per slot)</text>
+    <path class="w-spi" d="M250 340 H280"/><text x="288" y="344" style="font-size:11px">Shared SPI bus</text>
+    <path class="w-cs"  d="M400 340 H430"/><text x="438" y="344" style="font-size:11px">Chip-select, one line per slot</text>
+  </svg>
+  </div>
+  <p class="swipe">Swipe the diagram sideways to see all of it.</p>
+  <figcaption>Simplified block diagram of the design. It shows the architecture, not every net: the pin allocation of the 11-pin connector and the module-side circuits are in the schematics.</figcaption>
+</figure>
+
+<ul>
+  <li><strong>Common slot:</strong> all eight slots use the same standardized 11-pin connector.</li>
+  <li><strong>One shared SPI bus:</strong> the CH32V203 talks to every slot over the same SPI lines. The 74HC138 turns three address lines into one chip-select per slot, so only one slot is addressed at a time.</li>
+  <li><strong>Power:</strong> two supply inputs are combined with diodes (diode-OR). Each slot is fed through its own polyfuse.</li>
+  <li><strong>Detecting a module:</strong> each slot has a hardware presence-detect (pull-up/ground). Identifying <em>which</em> module is plugged in is planned for firmware.</li>
+</ul>
+
+<h2 id="motherboard">Motherboard design</h2>
+<div class="two">
+  <div>
+    <h3>What is designed</h3>
+    <ul>
+      <li>CH32V203C8T6 (RISC-V) main controller</li>
+      <li>4-layer PCB</li>
+      <li>Eight expansion slots with a standardized 11-pin connector</li>
+      <li>Shared SPI, with 74HC138 chip-select decoding</li>
+      <li>Dual power input combined with diode-OR</li>
+      <li>Per-slot polyfuses (Bourns MF-RG300), added after the main design was complete</li>
+    </ul>
+  </div>
+  <div>
+    <h3>What is not done</h3>
+    <ul>
+      <li>No board fabricated</li>
+      <li>No power-up or electrical checks</li>
+      <li>No firmware written or tested</li>
+    </ul>
+  </div>
+</div>
+<div class="grid">
+<figure>
+  <a href="images/motherboard-schematic.png" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/motherboard-schematic.png" alt="KiCad schematic of the MDEP motherboard"></a>
+  <figcaption>Motherboard schematic (KiCad): slot connectors, decoder and power input.</figcaption>
+</figure>
+<figure>
+  <a href="images/motherboard-pcb.png" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/motherboard-pcb.png" alt="3D view of the MDEP motherboard, front"></a>
+  <figcaption>Motherboard 3D view, front (KiCad render, not a photo).</figcaption>
+</figure>
+<figure>
+  <a href="images/motherboard-pcb-back.png" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/motherboard-pcb-back.png" alt="3D view of the MDEP motherboard, back"></a>
+  <figcaption>Motherboard 3D view, back (KiCad render, not a photo).</figcaption>
+</figure>
+</div>
+
+<h2 id="modules">Plug-in modules</h2>
+<p>Each module connects to the motherboard through the same 11-pin slot connector. Images are KiCad screenshots and renders of the designs.</p>
+
+<h3>Sensor Hub</h3>
+<p>Built around its own CH32V203, with five connectors for external I2C sensors. The connectors provide the hardware interfaces for different I2C sensors; automatic detection and configuration would require firmware. No sensors are currently fitted.</p>
+<div class="grid">
+<figure>
+  <a href="images/sensor-hub-layout.png" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/sensor-hub-layout.png" alt="PCB layout of the Sensor Hub"></a>
+  <figcaption>Sensor Hub PCB layout.</figcaption>
+</figure>
+<figure>
+  <a href="images/sensor-hub-schematic.png" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/sensor-hub-schematic.png" alt="Schematic of the Sensor Hub"></a>
+  <figcaption>Sensor Hub schematic.</figcaption>
+</figure>
+<figure>
+  <a href="images/sensor-hub-pcb.png" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/sensor-hub-pcb.png" alt="3D view of the Sensor Hub, front"></a>
+  <figcaption>Sensor Hub 3D view, front.</figcaption>
+</figure>
+<figure>
+  <a href="images/sensor-hub-pcb-back.png" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/sensor-hub-pcb-back.png" alt="3D view of the Sensor Hub, back"></a>
+  <figcaption>Sensor Hub 3D view, back.</figcaption>
+</figure>
+</div>
+
+<h3>Motor Driver Hub</h3>
+<p>Built around its own CH32V203 and a TB6612FNG intended to drive two motors. Encoder interfaces are included for future motor-speed (RPM) measurement; this function has not yet been implemented or tested.</p>
+<div class="grid">
+<figure>
+  <a href="images/motor-driver-layout.png" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/motor-driver-layout.png" alt="PCB layout of the Motor Driver Hub"></a>
+  <figcaption>Motor Driver Hub PCB layout.</figcaption>
+</figure>
+<figure>
+  <a href="images/motor-driver-schematic.png" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/motor-driver-schematic.png" alt="Schematic of the Motor Driver Hub"></a>
+  <figcaption>Motor Driver Hub schematic.</figcaption>
+</figure>
+<figure>
+  <a href="images/motor-driver-pcb.png" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/motor-driver-pcb.png" alt="3D view of the Motor Driver Hub, front"></a>
+  <figcaption>Motor Driver Hub 3D view, front.</figcaption>
+</figure>
+</div>
+
+<h3>Audio Hub</h3>
+<p>Built around an ESP32-S3, chosen for its built-in wireless. The design includes a microphone, a speaker, a USB-C receptacle and a display. This is also the board where the thermal-via rule violation described under <a href="#review">design review</a> was found and fixed.</p>
+<div class="grid">
+<figure>
+  <a href="images/audio-hub-layout.png" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/audio-hub-layout.png" alt="PCB layout of the Audio Hub"></a>
+  <figcaption>Audio Hub PCB layout.</figcaption>
+</figure>
+<figure>
+  <a href="images/audio-hub-schematic.png" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/audio-hub-schematic.png" alt="Schematic of the Audio Hub"></a>
+  <figcaption>Audio Hub schematic.</figcaption>
+</figure>
+<figure>
+  <a href="images/audio-hub-pcb.png" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/audio-hub-pcb.png" alt="3D view of the Audio Hub, front"></a>
+  <figcaption>Audio Hub 3D view, front.</figcaption>
+</figure>
+<figure>
+  <a href="images/audio-hub-pcb-back.png" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/audio-hub-pcb-back.png" alt="3D view of the Audio Hub, back"></a>
+  <figcaption>Audio Hub 3D view, back.</figcaption>
+</figure>
+</div>
+
+<h2 id="decisions">Engineering decisions and trade-offs</h2>
+<table>
+  <thead><tr><th>Decision</th><th>Why</th><th>Trade-off</th></tr></thead>
+  <tbody>
+    <tr><td>74HC138 chip-select</td>
+        <td data-l="Why">Three address lines select one of eight slots, so the MCU does not need eight separate chip-select pins.</td>
+        <td data-l="Trade-off">Only one slot is addressed at a time, and one decoder caps the design at eight slots. It adds a part to the board.</td></tr>
+    <tr><td>Standardized 11-pin connector</td>
+        <td data-l="Why">All MDEP-compatible modules use the same 11-pin connector and pinout, allowing them to be installed in any expansion slot.</td>
+        <td data-l="Trade-off">Every module has to work within the same fixed 11 signals, with no room for module-specific extras.</td></tr>
+    <tr><td>Presence-detect in hardware, identification planned in firmware</td>
+        <td data-l="Why">A hardware pull-up/ground check is designed to indicate whether a module is present, without module firmware. A separate SPI <code>WHO_AM_I</code> handshake is planned to identify the module type; this firmware is not yet implemented.</td>
+        <td data-l="Trade-off">Presence-detect alone does not say which module it is, and the identification step does not exist until the firmware is written and tested.</td></tr>
+    <tr><td>Diode-OR dual power input</td>
+        <td data-l="Why">Two supplies can feed the board without one feeding the other.</td>
+        <td data-l="Trade-off">Each diode drops some voltage and dissipates power. It is passive, so there is no controlled switchover between sources.</td></tr>
+    <tr><td>Per-slot polyfuses</td>
+        <td data-l="Why">They are intended to help limit an overcurrent on one slot and reduce the chance of it affecting the shared supply.</td>
+        <td data-l="Trade-off">They respond slowly and only above their trip current, so they do not cover every fault. They add a little series resistance.</td></tr>
+    <tr><td>Different MCUs on different boards</td>
+        <td data-l="Why">The CH32V203 is cheap and easy to build with. The ESP32-S3 is used where wireless is needed.</td>
+        <td data-l="Trade-off">Two MCU families mean two toolchains and firmware setups to maintain.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="review">Design review and debugging</h2>
+<p>Problems found and corrected while reviewing the schematics and layouts. Each includes what to check once real boards exist.</p>
+
+<div class="review">
+  <h3>1. Pull-up resistors connected to the wrong net</h3>
+  <dl>
+    <dt>What was wrong</dt><dd>Pull-up resistors were connected to the wrong net, causing the affected signal lines to be incorrectly biased towards 3.3V.</dd>
+    <dt>Why it mattered</dt><dd>The mistake was silent. The schematic looked complete, but those lines could not have behaved as intended.</dd>
+    <dt>What changed</dt><dd>The pull-ups were reconnected to the correct net.</dd>
+    <dt>Check at validation</dt><dd>Measure the idle voltage on each affected line before plugging in any module.</dd>
+  </dl>
+</div>
+
+<div class="review">
+  <h3>2. Inline decoupling capacitors breaking net connectivity</h3>
+  <dl>
+    <dt>What was wrong</dt><dd>Decoupling capacitors had been placed inline on a net, which broke its connectivity.</dd>
+    <dt>Why it mattered</dt><dd>Placing a decoupling capacitor in series with a supply path can interrupt the intended DC connection. Decoupling capacitors should instead connect between the supply rail and ground, close to the device power pins.</dd>
+    <dt>What changed</dt><dd>The net connectivity was corrected so the capacitors are no longer in series with the supply.</dd>
+    <dt>Check at validation</dt><dd>Check continuity of each supply net on the bare board, then confirm the rail reaches every IC supply pin.</dd>
+  </dl>
+</div>
+
+<div class="review">
+  <h3>3. ESP32-S3 thermal vias failing design-rule checks</h3>
+  <dl>
+    <dt>What was wrong</dt><dd>The thermal via hole size for the ESP32-S3 footprint produced DRC violations.</dd>
+    <dt>Why it mattered</dt><dd>A board that fails its own design rules may not be manufacturable at the specified sizes.</dd>
+    <dt>What changed</dt><dd>The thermal-via dimensions were adjusted to 0.2 mm, which cleared the reported DRC errors. The final dimensions still need to be checked against the PCB fabricator’s capabilities.</dd>
+    <dt>Check at validation</dt><dd>Confirm the chosen fabricator's minimum drill and via specifications before ordering.</dd>
+  </dl>
+</div>
+
+<h2 id="next">Current status and next steps</h2>
+<ol>
+  <li>Export manufacturing files and fabricate the boards</li>
+  <li>Hardware bring-up: power-up and checks on the supply, diode-OR and polyfuses</li>
+  <li>Verify SPI communication and the hardware presence-detect</li>
+  <li>Write and test firmware, including <code>WHO_AM_I</code> module identification</li>
+  <li>Test each module, then the complete platform</li>
+  <li>Research paper on the architecture (target: April 2027)</li>
+</ol>
+
+<h2 id="tools">Tools and skills</h2>
+<div class="two">
+  <div>
+    <h3>Used so far (design work)</h3>
+    <ul>
+      <li>KiCad schematic capture</li>
+      <li>4-layer PCB layout</li>
+      <li>Design-rule checking (DRC)</li>
+      <li>Power input design: diode-OR, polyfuses</li>
+      <li>Connector standardization and chip-select decoding</li>
+    </ul>
+  </div>
+  <div>
+    <h3>Planned (not yet done)</h3>
+    <ul>
+      <li>SPI firmware on the CH32V203</li>
+      <li>Module identification over SPI</li>
+      <li>Board bring-up and testing</li>
+    </ul>
+  </div>
+</div>
+
+<h2 id="contact">Contact</h2>
+<p>Questions about any design decision are welcome: <a href="mailto:prasannakakade88@gmail.com">prasannakakade88@gmail.com</a></p>
+<p class="note">All images on this page are KiCad screenshots or renders of the designs. No board has been fabricated.</p>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BLE-Controlled Rover | Prasanna Kakade</title>
+<style>
+  :root { --bg:#fafaf7; --fg:#1b1f23; --muted:#5b636b; --line:#dcdcd4; --accent:#1f3a5f; --card:#ffffff; --ph:#eef1f4; --pow:#b45309; --ctl:#1f5fa8; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#14181c; --fg:#e8eaed; --muted:#9aa3ab; --line:#2c333a; --accent:#8fb4e8; --card:#1b2026; --ph:#1f262d; --pow:#f0b35a; --ctl:#8fb4e8; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:820px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-size:2rem; line-height:1.2; margin:0 0 6px; color:var(--accent); }
+  h2 { font-size:1.25rem; margin:44px 0 12px; padding-bottom:6px; border-bottom:1px solid var(--line); color:var(--accent); }
+  h3 { margin:0 0 6px; font-size:1rem; }
+  p { margin:0 0 14px; }
+  .tagline { color:var(--muted); font-size:1.05rem; margin-bottom:16px; }
+  .status { display:inline-block; padding:6px 12px; border:1px solid var(--line); border-radius:999px; font-size:.88rem; background:var(--card); }
+  .tags { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 0; }
+  .tags span { font-size:.8rem; padding:3px 10px; border-radius:6px; background:var(--ph); color:var(--muted); }
+  figure { margin:22px 0; }
+  .ph { display:flex; align-items:center; justify-content:center; text-align:center; padding:20px; border:2px dashed var(--line); border-radius:10px; background:var(--ph); color:var(--muted); font-size:.92rem; }
+  .ph.wide { aspect-ratio:16/9; }
+  .ph.sq { aspect-ratio:4/3; }
+  .ph.video { aspect-ratio:16/9; }
+  .project-image { display:block; width:100%; border:1px solid var(--line); border-radius:10px; background:var(--ph); object-fit:contain; }
+  .project-image.wide { aspect-ratio:16/9; }
+  .project-image.sq { aspect-ratio:4/3; }
+  figure a { display:block; }
+  .project-video { display:block; width:100%; aspect-ratio:16/9; background:#000; border:1px solid var(--line); border-radius:10px; }
+  .diagram-wrap { overflow-x:auto; border:1px solid var(--line); border-radius:10px; background:var(--card); }
+  svg.diagram { width:100%; height:auto; display:block; }
+  .swipe { display:none; font-size:.8rem; color:var(--muted); margin:6px 0 0; }
+  @media (max-width:700px) { svg.diagram { min-width:700px; } .swipe { display:block; } }
+  svg.diagram text { fill:var(--fg); font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-size:12px; }
+  svg.diagram .sub { fill:var(--muted); font-size:10px; }
+  svg.diagram .box { fill:var(--ph); stroke:var(--line); stroke-width:1.5; }
+  svg.diagram .mod { fill:var(--card); stroke:var(--accent); stroke-width:1.5; }
+  svg.diagram .w-pow { stroke:var(--pow); stroke-width:2.5; fill:none; }
+  svg.diagram .w-ctl { stroke:var(--ctl); stroke-width:2.5; fill:none; }
+  svg.diagram .w-gnd { stroke:var(--muted); stroke-width:2; fill:none; stroke-dasharray:6 3; }
+  svg.diagram .w-ble { stroke:var(--muted); stroke-width:2; fill:none; stroke-dasharray:2 4; }
+  figcaption { font-size:.85rem; color:var(--muted); margin-top:8px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:640px) { .grid { grid-template-columns:1fr; } }
+  table { width:100%; border-collapse:collapse; font-size:.95rem; background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  th, td { text-align:left; vertical-align:top; padding:10px 12px; border-bottom:1px solid var(--line); }
+  th { font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); background:var(--ph); }
+  tr:last-child td { border-bottom:none; }
+  td:first-child { font-weight:600; width:34%; }
+  .bug { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin-bottom:18px; }
+  code { background:var(--ph); padding:1px 6px; border-radius:4px; font-size:.9em; }
+  ol, ul { padding-left:22px; margin:0 0 14px; }
+  li { margin-bottom:6px; }
+  .note { font-size:.85rem; color:var(--muted); border-left:3px solid var(--line); padding-left:12px; }
+  .todo { color:#b45309; font-style:italic; }
+  @media (prefers-color-scheme:dark) { .todo { color:#f0b35a; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>BLE-Controlled Four-Wheel Rover</h1>
+  <p class="tagline">An ESP32-S3-based rover with wireless movement commands and PWM motor-speed control.</p>
+  <span class="status">Status: Working prototype — all four wheels operating</span>
+  <div class="tags">
+    <span>ESP32-S3</span><span>BLE</span><span>L298N</span><span>GPIO</span><span>PWM</span><span>DC Motors</span><span>Power Debugging</span>
+  </div>
+
+  <figure>
+    <a href="images/motor-car.jpeg" target="_blank" rel="noopener"><img class="project-image wide" src="images/motor-car.jpeg" alt="The complete BLE-controlled four-wheel rover"></a>
+    <figcaption>Final rover prototype. Click to open full size.</figcaption>
+  </figure>
+
+  <h2>The idea</h2>
+  <p>This project is a four-wheel rover controlled wirelessly from a phone over Bluetooth Low Energy (BLE). An ESP32-S3 receives movement commands and controls the motor-driver inputs and PWM speed signals. The goal was to build a working mobile platform and debug the practical issues that appear when firmware, motors and power electronics are integrated.</p>
+
+  <h2>Architecture</h2>
+  <ul>
+    <li><strong>Controller:</strong> ESP32-S3 development board</li>
+    <li><strong>Wireless control:</strong> BLE serial communication from a mobile terminal app</li>
+    <li><strong>Motor driver:</strong> L298N dual H-bridge module</li>
+    <li><strong>Drive:</strong> Four DC motors; the two motors on each side are connected in parallel</li>
+    <li><strong>Power:</strong> 7.4 V (2S) Li-ion battery for the drive system, plus a 5 V regulator for control electronics and a shared ground reference</li>
+  </ul>
+  <figure>
+    <div class="diagram-wrap" tabindex="0" aria-label="Rover block diagram, scrollable">
+    <svg class="diagram" viewBox="0 0 850 360" role="img" aria-labelledby="rvT rvD">
+      <title id="rvT">Rover block diagram</title>
+      <desc id="rvD">A phone sends commands over BLE to an ESP32-S3. The ESP32-S3 sends GPIO direction signals and PWM speed signals to an L298N motor driver. A 7.4 V Li-ion battery supplies the motor driver. Each of the two L298N outputs drives two motors wired in parallel. The battery, ESP32-S3 and L298N share a ground.</desc>
+
+      <!-- phone and BLE -->
+      <rect class="box" x="20" y="105" width="110" height="50" rx="6"/>
+      <text x="75" y="127" text-anchor="middle" style="font-weight:600">Phone</text>
+      <text class="sub" x="75" y="143" text-anchor="middle">BLE terminal app</text>
+      <path class="w-ble" d="M130 130 H190"/>
+      <text class="sub" x="160" y="122" text-anchor="middle">BLE</text>
+
+      <!-- ESP32-S3 -->
+      <rect class="box" x="190" y="70" width="160" height="120" rx="6"/>
+      <text x="270" y="126" text-anchor="middle" style="font-weight:600">ESP32-S3</text>
+      <text class="sub" x="270" y="142" text-anchor="middle">BLE, GPIO, PWM</text>
+
+      <!-- control signals -->
+      <path class="w-ctl" d="M350 95 H440"/>
+      <text class="sub" x="395" y="87" text-anchor="middle">GPIO</text>
+      <text class="sub" x="395" y="110" text-anchor="middle">direction</text>
+      <path class="w-ctl" d="M350 155 H440"/>
+      <text class="sub" x="395" y="147" text-anchor="middle">PWM</text>
+      <text class="sub" x="395" y="170" text-anchor="middle">speed</text>
+
+      <!-- L298N -->
+      <rect class="box" x="440" y="40" width="150" height="190" rx="6"/>
+      <text x="515" y="58" text-anchor="middle" style="font-weight:600">L298N</text>
+      <text class="sub" x="515" y="72" text-anchor="middle">dual H-bridge</text>
+      <text class="sub" x="450" y="99">IN1 to IN4</text>
+      <text class="sub" x="450" y="159">ENA / ENB</text>
+      <text class="sub" x="582" y="89" text-anchor="end">OUT1 / OUT2</text>
+      <text class="sub" x="582" y="189" text-anchor="end">OUT3 / OUT4</text>
+      <text class="sub" x="470" y="222" text-anchor="middle">GND</text>
+
+      <!-- motor outputs, two motors in parallel on each -->
+      <path class="w-pow" d="M590 85 H650 M650 60 V110 M650 60 H690 M650 110 H690"/>
+      <path class="w-pow" d="M590 185 H650 M650 160 V210 M650 160 H690 M650 210 H690"/>
+      <circle class="mod" cx="710" cy="60" r="20"/><text x="710" y="64" text-anchor="middle">M1</text>
+      <circle class="mod" cx="710" cy="110" r="20"/><text x="710" y="114" text-anchor="middle">M2</text>
+      <circle class="mod" cx="710" cy="160" r="20"/><text x="710" y="164" text-anchor="middle">M3</text>
+      <circle class="mod" cx="710" cy="210" r="20"/><text x="710" y="214" text-anchor="middle">M4</text>
+      <text class="sub" x="742" y="82">Two motors</text><text class="sub" x="742" y="96">in parallel</text>
+      <text class="sub" x="742" y="182">Two motors</text><text class="sub" x="742" y="196">in parallel</text>
+
+      <!-- battery -->
+      <rect class="box" x="500" y="270" width="140" height="56" rx="6"/>
+      <text x="570" y="294" text-anchor="middle" style="font-weight:600">Li-ion battery</text>
+      <text class="sub" x="570" y="310" text-anchor="middle">7.4 V (2S)</text>
+      <path class="w-pow" d="M570 270 V230"/>
+      <text class="sub" x="580" y="254">motor supply</text>
+
+      <!-- shared ground -->
+      <path class="w-gnd" d="M270 190 V298 H500"/>
+      <path class="w-gnd" d="M470 230 V298"/>
+      <circle cx="470" cy="298" r="3" style="fill:var(--muted)"/>
+      <text class="sub" x="290" y="290">Shared ground</text>
+
+      <!-- legend -->
+      <path class="w-pow" d="M20 346 H50"/><text x="58" y="350" style="font-size:11px">Motor power</text>
+      <path class="w-ctl" d="M180 346 H210"/><text x="218" y="350" style="font-size:11px">Control signals</text>
+      <path class="w-gnd" d="M360 346 H390"/><text x="398" y="350" style="font-size:11px">Shared ground</text>
+      <path class="w-ble" d="M540 346 H570"/><text x="578" y="350" style="font-size:11px">BLE (wireless)</text>
+    </svg>
+    </div>
+    <p class="swipe">Swipe the diagram sideways to see all of it.</p>
+    <figcaption>Simplified block diagram. Each L298N output drives two motors wired in parallel. The 5 V regulator for the control electronics is not shown.</figcaption>
+  </figure>
+
+  <h2>How it works</h2>
+  <ol>
+    <li>A mobile phone sends a movement command through a BLE serial-terminal app.</li>
+    <li>The ESP32-S3 interprets the command and sets GPIO outputs to select motor direction.</li>
+    <li>PWM signals regulate the motor-driver enable inputs to control speed.</li>
+    <li>The left and right motor pairs work together to move or turn the rover.</li>
+  </ol>
+
+  <h2>Hardware and wiring</h2>
+  <div class="grid">
+    <figure>
+      <a href="images/motor-car-sch.png" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/motor-car-sch.png" alt="Circuit schematic of the rover: ESP32-S3, L298N, motors and battery"></a>
+      <figcaption>ESP32-S3 to L298N wiring, motor connections and power distribution.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/ckt.jpeg" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/ckt.jpeg" alt="Close-up of the rover electronics: ESP32-S3, L298N, regulator, battery and wiring"></a>
+      <figcaption>Actual ESP32-S3, L298N, regulator, battery and wiring.</figcaption>
+    </figure>
+    <figure>
+      <a href="images/chassis.jpeg" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/chassis.jpeg" alt="Rover chassis with the four motors and their connections"></a>
+      <figcaption>Chassis and left/right motor grouping.</figcaption>
+    </figure>
+  </div>
+
+  <h2>Firmware and control</h2>
+  <table>
+    <thead><tr><th>Part</th><th>Implementation</th></tr></thead>
+    <tbody>
+      <tr><td>Command link</td><td>BLE serial communication with a phone-based terminal app</td></tr>
+      <tr><td>Direction</td><td>GPIO outputs control the L298N direction inputs</td></tr>
+      <tr><td>Speed</td><td>PWM output controls the motor-driver enable inputs</td></tr>
+      <tr><td>Speed transitions</td><td>Firmware uses gradual speed changes rather than jumping directly to the target value</td></tr>
+      <tr><td>PWM configuration</td><td>5 kHz frequency, 8-bit resolution</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Problems I debugged</h2>
+  <div class="bug">
+    <h3>1. Motor polarity and direction mismatch</h3>
+    <p>Motor wiring and direction logic did not initially produce the expected movement. I corrected the polarity/command mapping so the rover responds consistently to direction commands.</p>
+  </div>
+  <div class="bug">
+    <h3>2. Weak response at low PWM values</h3>
+    <p>At low speed settings, the motors did not always start moving reliably. This exposed the difference between setting a PWM duty cycle and supplying enough effective torque to overcome motor friction and load.</p>
+  </div>
+  <div class="bug">
+    <h3>3. Power distribution and motor-driver integration</h3>
+    <p>I adjusted the power arrangement and checked the shared ground between the controller and motor-driver circuitry. This helped make the full system work reliably with all four wheels.</p>
+  </div>
+
+  <h2>Live demonstration</h2>
+  <figure>
+    <video class="project-video" controls preload="metadata" playsinline>
+      <source src="images/motor-car-vdo.mp4" type="video/mp4">
+      Your browser can't play this video. <a href="images/motor-car-vdo.mp4">Download it instead.</a>
+    </video>
+    <figcaption>Rover demonstration.</figcaption>
+  </figure>
+
+  <h2>Outcome</h2>
+  <p>The result is a working four-wheel rover that accepts wireless movement commands over BLE and supports PWM-based speed control. The most valuable part was debugging motor polarity, low-speed behaviour and power distribution until the integrated system operated reliably.</p>
+
+  <h2>What I learned</h2>
+  <ul>
+    <li>Connecting BLE communication to real-time embedded motor control.</li>
+    <li>Using GPIO direction signals and PWM with an H-bridge motor driver.</li>
+    <li>Debugging motor start-up behaviour, wiring polarity and power distribution.</li>
+    <li>Testing the full hardware–firmware system rather than treating each component separately.</li>
+  </ul>
+
+  <h2>What's next</h2>
+  <ol>
+    <li>Document the final wiring and power connections clearly.</li>
+    <li>Add wheel encoders if measured speed feedback is needed.</li>
+    <li>Add a defined communication-loss response, such as stopping the motors if commands are no longer received.</li>
+    <li>Evaluate a more efficient motor driver if voltage drop or thermal performance becomes a limitation.</li>
+  </ol>
+
+  <h2>Tools</h2>
+  <p>ESP32-S3 development board, BLE serial terminal, C/C++ firmware, GPIO, PWM, L298N motor driver, DC motors, 2S Li-ion battery and 5 V regulator.</p>
+
+  <p class="note">Contact: prasannakakade88@gmail.com</p>
+</main>
+</body>
+</html>

@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prasanna Kakade | Embedded Systems & PCB Design</title>
+<meta name="description" content="Portfolio of Prasanna Kakade — Electronics and Telecommunication Engineering student focused on embedded systems, PCB design and hardware development.">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg:#fafaf7; --fg:#1b1f23; --muted:#5b636b;
+  --line:#dcdcd4; --accent:#1f3a5f; --card:#ffffff;
+}
+@media(prefers-color-scheme:dark) {
+  :root {
+    --bg:#14181c; --fg:#e8eaed; --muted:#9aa3ab;
+    --line:#2c333a; --accent:#8fb4e8; --card:#1b2026;
+  }
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+main { max-width:1000px; margin:auto; padding:70px 24px; }
+header { padding:45px 0 55px; border-bottom:1px solid var(--line); }
+.eyebrow {
+  color:var(--accent); font-size:13px; font-weight:700;
+  letter-spacing:2px; text-transform:uppercase;
+}
+h1 { font-size:clamp(2.3rem,6vw,4rem); line-height:1.1; margin:15px 0; color:var(--accent); }
+.subtitle { max-width:650px; color:var(--muted); font-size:18px; }
+h2 { font-size:1.35rem; margin:45px 0 18px; color:var(--accent); }
+.projects { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; }
+.project {
+  background:var(--card); border:1px solid var(--line);
+  border-radius:12px; overflow:hidden; transition:transform .2s ease;
+}
+.project:hover { transform:translateY(-4px); }
+.project img {
+  display:block; width:100%; height:210px;
+  object-fit:cover; border-bottom:1px solid var(--line);
+}
+.project-content { padding:22px; }
+.project h3 { margin:0 0 8px; font-size:20px; }
+.project p { color:var(--muted); margin:0 0 18px; }
+.project a { color:var(--accent); font-weight:650; text-decoration:none; }
+.project a:hover { text-decoration:underline; }
+.skills { display:flex; flex-wrap:wrap; gap:10px; }
+.skills span {
+  border:1px solid var(--line); border-radius:6px;
+  padding:6px 12px; font-size:14px; color:var(--muted);
+}
+footer { margin-top:55px; padding-top:20px; border-top:1px solid var(--line); color:var(--muted); font-size:14px; }
+footer a { color:var(--accent); text-decoration:none; }
+@media(max-width:600px) {
+  main { padding:35px 18px; }
+  header { padding:30px 0 40px; }
+}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="eyebrow">Electronics & Telecommunication Engineering</div>
+  <h1>Prasanna Kakade</h1>
+  <p class="subtitle">
+    Embedded Systems & PCB Design Enthusiast.
+    Building practical hardware and firmware projects,
+    from circuit design to functional prototypes.
+  </p>
+</header>
+
+<section>
+  <h2>Selected Projects</h2>
+  <div class="projects">
+    <article class="project">
+      <img src="images/motherboard-layout.png" alt="MDEP motherboard PCB layout">
+      <div class="project-content">
+        <h3>Modular Distributed Embedded Platform</h3>
+        <p>A modular embedded hardware platform featuring a 4-layer motherboard, CH32V203 MCU and three expansion modules.</p>
+        <a href="mdep.html">Explore MDEP →</a>
+      </div>
+    </article>
+
+    <article class="project">
+      <img src="images/motor-car.jpeg" alt="Completed four-wheel BLE rover">
+      <div class="project-content">
+        <h3>BLE-Controlled Four-Wheel Rover</h3>
+        <p>An ESP32-based wireless rover integrating Bluetooth control, motor drivers and PWM speed control.</p>
+        <a href="rover.html">Explore Rover →</a>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section>
+  <h2>Technical Skills</h2>
+  <div class="skills">
+    <span>KiCad</span><span>PCB Design</span>
+    <span>Embedded Systems</span><span>ESP32</span>
+    <span>CH32V203</span><span>C Programming</span>
+    <span>SPI</span><span>GPIO</span><span>PWM</span>
+    <span>BLE</span><span>Hardware Debugging</span>
+  </div>
+</section>
+
+<footer>
+  <p>
+    Pune, India ·
+    <a href="mailto:prasannakakade88@gmail.com">Email</a> ·
+    <a href="https://github.com/prasannakkd-star" target="_blank">GitHub</a> ·
+    <a href="https://bit.ly/46ry2G4" target="_blank">LinkedIn</a>
+  </p>
+  <p>© 2026 Prasanna Kakade</p>
+</footer>
+</main>
+</body>
+</html>
