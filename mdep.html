@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MDEP | Prasanna Kakade</title>
-<meta name="description" content="MDEP: a modular embedded platform with a 4-layer CH32V203 motherboard and three plug-in modules, designed in KiCad. Design complete; fabrication and validation pending.">
+<meta name="description" content="MDEP: a modular embedded platform with a 4-layer CH32V203 motherboard, eight slots and three plug-in modules, designed in KiCad. Design complete; fabrication and validation pending.">
 <style>
   :root {
     --bg:#fafaf7; --fg:#1b1f23; --muted:#5b636b; --line:#dcdcd4; --accent:#1f3a5f; --card:#ffffff; --ph:#eef1f4;
@@ -63,7 +63,6 @@
   svg.diagram .sub { fill: var(--muted); font-size: 10px; }
   svg.diagram .box { fill: var(--ph); stroke: var(--line); stroke-width: 1.5; }
   svg.diagram .mod { fill: var(--card); stroke: var(--accent); stroke-width: 1.5; }
-  svg.diagram .pf { fill: var(--card); stroke: var(--pow); stroke-width: 1.5; }
   svg.diagram .w-pow { stroke: var(--pow); stroke-width: 2.5; fill:none; }
   svg.diagram .w-spi { stroke: var(--spi); stroke-width: 2.5; fill:none; }
   svg.diagram .w-cs  { stroke: var(--cs);  stroke-width: 2;   fill:none; stroke-dasharray: 6 3; }
@@ -100,10 +99,10 @@
   <h1>MDEP: Modular Distributed Embedded Platform</h1>
   <p class="tagline">A CH32V203-based motherboard with eight expansion slots and three plug-in modules, designed in KiCad.</p>
   <p class="role"><strong>Role:</strong> PCB design and project development (KiCad schematics and layouts).</p>
-  <div class="tags"><span>KiCad</span><span>4-layer PCB</span><span>CH32V203C8T6 (RISC-V)</span><span>ESP32-S3</span><span>SPI</span><span>Power input design</span></div>
+  <div class="tags"><span>KiCad</span><span>4-layer PCB</span><span>CH32V203C8T6 (RISC-V)</span><span>ESP32-S3</span><span>SPI</span><span>CAN</span><span>USB-C power</span></div>
 
   <nav class="toc" aria-label="Page sections">
-    <a href="#status">Status</a><a href="#overview">Overview</a><a href="#architecture">Architecture</a><a href="#motherboard">Motherboard</a><a href="#modules">Modules</a><a href="#decisions">Decisions</a><a href="#review">Design review</a><a href="#next">Next steps</a><a href="#tools">Tools</a><a href="#contact">Contact</a>
+    <a href="#status">Status</a><a href="#overview">Overview</a><a href="#architecture">Architecture</a><a href="#motherboard">Motherboard</a><a href="#modules">Modules</a><a href="#decisions">Decisions</a><a href="#review">Design review</a><a href="#limits">Known issues</a><a href="#next">Next steps</a><a href="#tools">Tools</a><a href="#contact">Contact</a>
   </nav>
 
   <figure>
@@ -121,14 +120,14 @@
 
 <h2 id="overview">Overview</h2>
 <p>Most embedded boards are one fixed design: adding a motor driver or an audio chip means redesigning the board. MDEP splits the system into a motherboard and plug-in modules, so a sensor, motor or audio function can be added, removed or debugged on its own.</p>
-<p>The motherboard includes a hardware presence-detect arrangement for each slot, and each slot has its own polyfuse intended to help limit the effect of an overcurrent. These protections have not yet been verified on fabricated hardware; their real-world performance will be established during bring-up and testing.</p>
+<p>The motherboard has a hardware presence-detect line for each slot: a 10 kΩ pull-up on the motherboard that the module ties to ground. This has not yet been verified on fabricated hardware; it will be checked during bring-up. The full design files, slot specification and bring-up plan are in the <a href="https://github.com/prasannakkd-star/MDEP">GitHub repository</a>.</p>
 
 <h2 id="architecture">System architecture</h2>
 <figure>
   <div class="diagram-wrap" tabindex="0" aria-label="Block diagram, scrollable">
   <svg class="diagram" viewBox="0 0 790 360" role="img" aria-labelledby="diagTitle diagDesc">
     <title id="diagTitle">Simplified MDEP block diagram</title>
-    <desc id="diagDesc">A dual power input with diode-OR and a CH32V203 microcontroller feed eight expansion slots. Power passes through a polyfuse per slot. The microcontroller shares one SPI bus across all slots and selects a slot through a 74HC138 decoder. Three plug-in modules fit into the slots.</desc>
+    <desc id="diagDesc">A dual power input with diode-OR and a CH32V203 microcontroller feed eight expansion slots. Both supply rails (+3.3 V and +5 V) go directly to every slot. The microcontroller shares one SPI bus across all slots and selects a slot through a 74HC138 decoder. Three plug-in modules fit into the slots.</desc>
 
     <!-- shared rails -->
     <path class="w-pow" d="M170 40 H290 V292"/>
@@ -141,19 +140,15 @@
 
     <!-- slot rows -->
     <g id="row1">
-      <path class="w-pow" d="M290 40 H400"/>
+      <path class="w-pow" d="M290 40 H470"/>
       <path class="w-spi" d="M330 55 H470"/>
-      <rect class="pf" x="400" y="31" width="46" height="18" rx="3"/><text x="423" y="44" text-anchor="middle" style="font-size:10px">PF</text>
-      <path class="w-pow" d="M446 40 H470"/>
       <rect class="box" x="470" y="22" width="150" height="56" rx="6"/>
       <text x="545" y="46" text-anchor="middle" style="font-weight:600">Slot 1</text>
       <text class="sub" x="545" y="62" text-anchor="middle">11-pin · presence-detect</text>
     </g>
     <g id="row2">
-      <path class="w-pow" d="M290 120 H400"/>
+      <path class="w-pow" d="M290 120 H470"/>
       <path class="w-spi" d="M330 135 H470"/>
-      <rect class="pf" x="400" y="111" width="46" height="18" rx="3"/><text x="423" y="124" text-anchor="middle" style="font-size:10px">PF</text>
-      <path class="w-pow" d="M446 120 H470"/>
       <rect class="box" x="470" y="102" width="150" height="56" rx="6"/>
       <text x="545" y="126" text-anchor="middle" style="font-weight:600">Slot 2</text>
       <text class="sub" x="545" y="142" text-anchor="middle">11-pin · presence-detect</text>
@@ -161,10 +156,8 @@
     <text x="545" y="196" text-anchor="middle" style="font-size:18px">⋮</text>
     <text class="sub" x="545" y="214" text-anchor="middle">slots 3 to 7, same design</text>
     <g id="row8">
-      <path class="w-pow" d="M290 272 H400"/>
+      <path class="w-pow" d="M290 272 H470"/>
       <path class="w-spi" d="M330 287 H470"/>
-      <rect class="pf" x="400" y="263" width="46" height="18" rx="3"/><text x="423" y="276" text-anchor="middle" style="font-size:10px">PF</text>
-      <path class="w-pow" d="M446 272 H470"/>
       <rect class="box" x="470" y="254" width="150" height="56" rx="6"/>
       <text x="545" y="278" text-anchor="middle" style="font-weight:600">Slot 8</text>
       <text class="sub" x="545" y="294" text-anchor="middle">11-pin · presence-detect</text>
@@ -173,7 +166,7 @@
     <!-- left column -->
     <rect class="box" x="20" y="10" width="150" height="60" rx="6"/>
     <text x="95" y="36" text-anchor="middle" style="font-weight:600">Dual power input</text>
-    <text class="sub" x="95" y="52" text-anchor="middle">diode-OR</text>
+    <text class="sub" x="95" y="52" text-anchor="middle">USB-C or barrel, diode-OR</text>
 
     <rect class="box" x="20" y="130" width="150" height="60" rx="6"/>
     <text x="95" y="156" text-anchor="middle" style="font-weight:600">CH32V203C8T6</text>
@@ -192,17 +185,17 @@
     <text class="sub" x="716" y="82" text-anchor="middle">Plug-in modules</text>
     <text class="sub" x="716" y="96" text-anchor="middle">(fit any slot)</text>
     <rect class="mod" x="660" y="110" width="112" height="44" rx="6"/>
-    <text x="716" y="137" text-anchor="middle">Sensor Hub</text>
+    <text x="716" y="137" text-anchor="middle">Sensor Hub</text><text class="sub" x="716" y="150" text-anchor="middle">CH32V003</text>
     <rect class="mod" x="660" y="166" width="112" height="44" rx="6"/>
-    <text x="716" y="193" text-anchor="middle">Motor Driver Hub</text>
+    <text x="716" y="193" text-anchor="middle">Motor Driver Hub</text><text class="sub" x="716" y="206" text-anchor="middle">CH32V003</text>
     <rect class="mod" x="660" y="222" width="112" height="44" rx="6"/>
     <text x="716" y="241" text-anchor="middle">Audio Hub</text>
     <text class="sub" x="716" y="256" text-anchor="middle">ESP32-S3</text>
 
     <!-- legend -->
-    <path class="w-pow" d="M20 340 H50"/><text x="58" y="344" style="font-size:11px">Power (polyfuse "PF" per slot)</text>
-    <path class="w-spi" d="M250 340 H280"/><text x="288" y="344" style="font-size:11px">Shared SPI bus</text>
-    <path class="w-cs"  d="M400 340 H430"/><text x="438" y="344" style="font-size:11px">Chip-select, one line per slot</text>
+    <path class="w-pow" d="M20 340 H50"/><text x="58" y="344" style="font-size:11px">Power (+3.3 V and +5 V to every slot)</text>
+    <path class="w-spi" d="M290 340 H320"/><text x="328" y="344" style="font-size:11px">Shared SPI bus</text>
+    <path class="w-cs"  d="M450 340 H480"/><text x="488" y="344" style="font-size:11px">Chip-select, one line per slot</text>
   </svg>
   </div>
   <p class="swipe">Swipe the diagram sideways to see all of it.</p>
@@ -212,7 +205,7 @@
 <ul>
   <li><strong>Common slot:</strong> all eight slots use the same standardized 11-pin connector.</li>
   <li><strong>One shared SPI bus:</strong> the CH32V203 talks to every slot over the same SPI lines. The 74HC138 turns three address lines into one chip-select per slot, so only one slot is addressed at a time.</li>
-  <li><strong>Power:</strong> two supply inputs are combined with diodes (diode-OR). Each slot is fed through its own polyfuse.</li>
+  <li><strong>Power:</strong> USB-C VBUS feeds the +5 V rail through a Schottky diode. The barrel-jack input passes through an AMS1117-5.0 regulator and a second Schottky diode. An AMS1117-3.3 generates the +3.3 V rail. Both rails are distributed directly to all eight slots, without per-slot overcurrent protection.</li>
   <li><strong>Detecting a module:</strong> each slot has a hardware presence-detect (pull-up/ground). Identifying <em>which</em> module is plugged in is planned for firmware.</li>
 </ul>
 
@@ -225,8 +218,10 @@
       <li>4-layer PCB</li>
       <li>Eight expansion slots with a standardized 11-pin connector</li>
       <li>Shared SPI, with 74HC138 chip-select decoding</li>
-      <li>Dual power input combined with diode-OR</li>
-      <li>Per-slot polyfuses (Bourns MF-RG300), added after the main design was complete</li>
+      <li>Two supply inputs combined with a Schottky diode-OR</li>
+      <li>USB-C and barrel-jack power, with an AMS1117-5.0 and AMS1117-3.3</li>
+      <li>CAN transceiver (SN65HVD230), USB full-speed and an SWD header</li>
+      <li>Eight general-purpose slot GPIO lines and eight hardware presence-detect lines, one of each per slot</li>
     </ul>
   </div>
   <div>
@@ -257,7 +252,7 @@
 <p>Each module connects to the motherboard through the same 11-pin slot connector. Images are KiCad screenshots and renders of the designs.</p>
 
 <h3>Sensor Hub</h3>
-<p>Built around its own CH32V203, with five connectors for external I2C sensors. The connectors provide the hardware interfaces for different I2C sensors; automatic detection and configuration would require firmware. No sensors are currently fitted.</p>
+<p>Built around a CH32V003. It carries a BME280 (environment) and an MPU-6050 (motion) on I2C, plus headers for more I2C sensors and for an analog input. Automatic detection and configuration of external sensors would require firmware.</p>
 <div class="grid">
 <figure>
   <a href="images/sensor-hub-layout.png" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/sensor-hub-layout.png" alt="PCB layout of the Sensor Hub"></a>
@@ -278,7 +273,7 @@
 </div>
 
 <h3>Motor Driver Hub</h3>
-<p>Built around its own CH32V203 and a TB6612FNG intended to drive two motors. Encoder interfaces are included for future motor-speed (RPM) measurement; this function has not yet been implemented or tested.</p>
+<p>Built around a CH32V003 and a TB6612FNG dual H-bridge for two motor channels. Each motor connector also brings out an MCU signal intended for an encoder interface and RPM measurement. Encoder firmware and motor operation have not yet been implemented or tested. Motor supply is taken from the shared slot +5 V rail.</p>
 <div class="grid">
 <figure>
   <a href="images/motor-driver-layout.png" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/motor-driver-layout.png" alt="PCB layout of the Motor Driver Hub"></a>
@@ -295,7 +290,7 @@
 </div>
 
 <h3>Audio Hub</h3>
-<p>Built around an ESP32-S3, chosen for its built-in wireless. The design includes a microphone, a speaker, a USB-C receptacle and a display. This is also the board where the thermal-via rule violation described under <a href="#review">design review</a> was found and fixed.</p>
+<p>Built around an ESP32-S3-WROOM-1, chosen for its built-in wireless. The design includes a MAX98357A I2S amplifier, a header for an I2S microphone, a 0.91" I2C OLED display, an SD-card header, a WS2812 LED and its own USB-C receptacle. This is also the board where the thermal-via rule violation described under <a href="#review">design review</a> was found and fixed.</p>
 <div class="grid">
 <figure>
   <a href="images/audio-hub-layout.png" target="_blank" rel="noopener"><img class="project-image sq" loading="lazy" src="images/audio-hub-layout.png" alt="PCB layout of the Audio Hub"></a>
@@ -321,9 +316,9 @@
   <tbody>
     <tr><td>74HC138 chip-select</td>
         <td data-l="Why">Three address lines select one of eight slots, so the MCU does not need eight separate chip-select pins.</td>
-        <td data-l="Trade-off">Only one slot is addressed at a time, and one decoder caps the design at eight slots. It adds a part to the board.</td></tr>
+        <td data-l="Trade-off">The decoder is permanently enabled, so one chip-select is always asserted. There is no all-slots-deselected state. The design is limited to eight slots without additional decoding hardware.</td></tr>
     <tr><td>Standardized 11-pin connector</td>
-        <td data-l="Why">All MDEP-compatible modules use the same 11-pin connector and pinout, allowing them to be installed in any expansion slot.</td>
+        <td data-l="Why">All modules are designed around the same 11-pin connector and slot interface, allowing a common mechanical and electrical connection.</td>
         <td data-l="Trade-off">Every module has to work within the same fixed 11 signals, with no room for module-specific extras.</td></tr>
     <tr><td>Presence-detect in hardware, identification planned in firmware</td>
         <td data-l="Why">A hardware pull-up/ground check is designed to indicate whether a module is present, without module firmware. A separate SPI <code>WHO_AM_I</code> handshake is planned to identify the module type; this firmware is not yet implemented.</td>
@@ -331,12 +326,12 @@
     <tr><td>Diode-OR dual power input</td>
         <td data-l="Why">Two supplies can feed the board without one feeding the other.</td>
         <td data-l="Trade-off">Each diode drops some voltage and dissipates power. It is passive, so there is no controlled switchover between sources.</td></tr>
-    <tr><td>Per-slot polyfuses</td>
-        <td data-l="Why">They are intended to help limit an overcurrent on one slot and reduce the chance of it affecting the shared supply.</td>
-        <td data-l="Trade-off">They respond slowly and only above their trip current, so they do not cover every fault. They add a little series resistance.</td></tr>
+    <tr><td>Shared rails, no per-slot protection (Rev A)</td>
+        <td data-l="Why">Keeps the slot and motherboard simple while the architecture is proven.</td>
+        <td data-l="Trade-off">A fault on one module can pull down the shared rails. Per-slot overcurrent protection is planned for the next revision.</td></tr>
     <tr><td>Different MCUs on different boards</td>
-        <td data-l="Why">The CH32V203 is cheap and easy to build with. The ESP32-S3 is used where wireless is needed.</td>
-        <td data-l="Trade-off">Two MCU families mean two toolchains and firmware setups to maintain.</td></tr>
+        <td data-l="Why">The CH32V203 is the motherboard controller, chosen because it is cheap and easy to build with. CH32V003 controllers are used on the Sensor and Motor Driver Hubs, and the ESP32-S3 is used on the Audio Hub for wireless and native USB.</td>
+        <td data-l="Trade-off">Three MCU variants across two families mean multiple toolchains and firmware setups to maintain.</td></tr>
   </tbody>
 </table>
 
@@ -373,10 +368,21 @@
   </dl>
 </div>
 
+<h2 id="limits">Known issues in this revision</h2>
+<p>Found while documenting the design. They are on the list to fix before fabrication.</p>
+<ul>
+  <li>On the Sensor Hub, the SPI MISO and MOSI lines look crossed relative to the motherboard and the other modules.</li>
+  <li>On the Audio Hub, the amplifier output has no speaker connector on the PCB.</li>
+  <li>The Audio Hub USB-C VBUS connects directly to the shared +5 V rail with no diode.</li>
+  <li>The motherboard has no per-slot overcurrent protection. Both supply rails are distributed directly to all slots, so a fault on one module can affect the shared power rails.</li>
+  <li>The 74HC138 is always enabled, so one slot is always selected; every module must release MISO when its chip-select is high.</li>
+  <li>The motor supply is the shared +5 V rail with no bulk capacitor on the Motor Driver Hub.</li>
+</ul>
+
 <h2 id="next">Current status and next steps</h2>
 <ol>
   <li>Export manufacturing files and fabricate the boards</li>
-  <li>Hardware bring-up: power-up and checks on the supply, diode-OR and polyfuses</li>
+  <li>Hardware bring-up: power-up and checks on the supply and diode-OR (staged plan in the repository)</li>
   <li>Verify SPI communication and the hardware presence-detect</li>
   <li>Write and test firmware, including <code>WHO_AM_I</code> module identification</li>
   <li>Test each module, then the complete platform</li>
@@ -391,14 +397,15 @@
       <li>KiCad schematic capture</li>
       <li>4-layer PCB layout</li>
       <li>Design-rule checking (DRC)</li>
-      <li>Power input design: diode-OR, polyfuses</li>
+      <li>Power input design: USB-C and barrel jack, diode-OR, linear regulators</li>
       <li>Connector standardization and chip-select decoding</li>
+      <li>CAN, USB and I2S circuit design</li>
     </ul>
   </div>
   <div>
     <h3>Planned (not yet done)</h3>
     <ul>
-      <li>SPI firmware on the CH32V203</li>
+      <li>SPI firmware on the CH32V203 and module controllers</li>
       <li>Module identification over SPI</li>
       <li>Board bring-up and testing</li>
     </ul>
@@ -406,7 +413,7 @@
 </div>
 
 <h2 id="contact">Contact</h2>
-<p>Questions about any design decision are welcome: <a href="mailto:prasannakakade88@gmail.com">prasannakakade88@gmail.com</a></p>
+<p>Design files: <a href="https://github.com/prasannakkd-star/MDEP">github.com/prasannakkd-star/MDEP</a>. Questions about any design decision are welcome: <a href="mailto:prasannakakade88@gmail.com">prasannakakade88@gmail.com</a></p>
 <p class="note">All images on this page are KiCad screenshots or renders of the designs. No board has been fabricated.</p>
 
 </main>
